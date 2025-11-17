@@ -1,0 +1,171 @@
+/* Giảm kích thước logo và canh giữa theo chiều dọc */
+.header__left .ps-logo img {
+  height: 45px;        /* chiều cao logo nhỏ gọn */
+  width: auto;          /* giữ tỷ lệ gốc */
+  object-fit: contain;  /* tránh méo hình */
+  transition: all 0.3s ease-in-out;
+}
+
+/* Khi cuộn trang (sticky header) logo nhỏ hơn một chút */
+.header[data-sticky="true"].header--sticky .ps-logo img {
+  height: 35px;
+}
+
+/* Căn giữa logo so với khung tìm kiếm */
+.header__left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Tăng khoảng cách giữa menu danh mục và logo */
+.menu--product-categories {
+  margin-right: 10px;
+}
+
+/* Điều chỉnh tổng thể phần header cho nhẹ mắt */
+.header__top {
+  background-color: #ffffff;
+  border-bottom: 1px solid #eaeaea;
+  padding: 8px 0;
+}
+
+/* Tông màu tổng thể nhẹ nhàng hơn */
+.header__center input.form-control {
+  border-radius: 25px;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+}
+/* ---------- Top ticker ---------- */
+.top-ticker {
+  width: 100%;
+  background: #000;           /* màu đen */
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 36px;
+  height: 36px;              /* thanh mảnh */
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  position: relative;
+  z-index: 9999;
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.02);
+}
+
+.top-ticker__inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.top-ticker__track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  will-change: transform;
+  /* tốc độ: 40s để đi 1 lần — chỉnh tăng/giảm tùy ý */
+  animation: tickerMove 40s linear infinite;
+}
+
+/* các item và dấu chấm */
+.top-ticker__item {
+  padding: 0 14px;
+  display: inline-block;
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+
+.top-ticker__dot {
+  color: rgba(255,255,255,0.3);
+  padding-right: 12px;
+  padding-left: 6px;
+}
+
+/* seamless: dịch chuyển đúng 50% vì nội dung lặp 2 lần */
+@keyframes tickerMove {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* responsive: giảm text trên màn nhỏ */
+@media (max-width: 768px) {
+  .top-ticker { height: 32px; font-size: 12px; line-height: 32px; }
+  .top-ticker__item { padding: 0 10px; }
+}
+
+/* tôn trọng setting người dùng muốn giảm motion */
+@media (prefers-reduced-motion: reduce) {
+  .top-ticker__track { animation: none; }
+}
+/* Đổi thanh điều hướng thành màu đen */
+.navigation {
+  background-color: #000 !important;
+}
+
+/* Đổi chữ menu thành trắng cho dễ nhìn */
+.navigation .menu-item a {
+  color: #fff !important;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+/* Hiệu ứng hover: chuyển sang xanh Martfury */
+.navigation .menu-item a:hover {
+  color: #00c4cc !important;
+}
+
+/* Nút danh mục cũng theo tông đen */
+.menu--product-categories .menu__toggle {
+  background: transparent;
+  color: #fff !important;
+}
+.menu--product-categories .menu__toggle i {
+  color: #fff !important;
+}
+/* ----- Form tìm kiếm tổng thể ----- */
+.ps-form--quick-search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* tạo khoảng cách giữa ô input và nút tìm */
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* ----- Ô nhập tìm kiếm ----- */
+.ps-form--quick-search .form-control {
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-size: 14px;
+  flex: 1;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.ps-form--quick-search .form-control:focus {
+  border-color: #00c4cc; /* xanh nhẹ Martfury */
+  box-shadow: 0 0 0 3px rgba(0, 196, 204, 0.2);
+}
+
+/* ----- Nút "Tìm" ----- */
+.ps-form--quick-search button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 25px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover effect mượt */
+.ps-form--quick-search button:hover {
+  background-color: #00c4cc;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 196, 204, 0.4);
+}

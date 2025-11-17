@@ -1,0 +1,169 @@
+.star {
+    position: relative;
+    display: inline-block;
+    font-size: 5rem;
+    color: #d3d3d3;
+  }
+  .full {
+    color: #ffcc23;
+  }
+  .half {
+    position: absolute;
+    display: inline-block;
+    overflow: hidden;
+    color: #ffcc23;
+  }
+ /* --------- FIXED CSS FOR CSS-ONLY HERO SLIDER ---------- */
+.css-hero-slider {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  height: 680px; /* quan trọng: cho container chiều cao cố định */
+  min-height: 360px;
+  background: #000; /* fallback nếu ảnh không load */
+}
+
+/* slide absolute mà vẫn nằm trong container vì parent có height */
+.css-hero-slider .slide {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+/* background image cover - z-index thấp */
+.slide__bg {
+  position: absolute;
+  inset: 0;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transform: translateZ(0);
+  z-index: 1;
+}
+
+/* overlay so text nổi bật - trên bg */
+.slide__overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.55));
+  z-index: 2;
+}
+
+/* content centered - trên overlay */
+.slide__content {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 20px;
+  color: #fff;
+}
+
+/* Kicker, title, cta */
+/* --- hero text style giống Phong Cách Xanh --- */
+
+/* chữ nhỏ phía trên (kicker) */
+.kicker {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+/* tiêu đề chính */
+.title {
+  margin: 0;
+  font-size: 60px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.6);
+  letter-spacing: 0.3px;
+}
+
+/* nút CTA "Xem chi tiết" / "Mua ngay" */
+.cta {
+  display: inline-block;
+  margin-top: 26px;
+  padding: 14px 38px;
+  background-color: #fff;
+  color: #000;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: all 0.25s ease;
+}
+
+.cta:hover {
+  background-color: #000;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+
+/* responsive nhỏ hơn */
+@media (max-width: 992px) {
+  .title {
+    font-size: 40px;
+  }
+  .cta {
+    padding: 10px 26px;
+    font-size: 14px;
+  }
+}
+
+/* animation timings (4 slides) */
+.slide.s1 { animation: fadeSlide 16s linear infinite 0s; }
+.slide.s2 { animation: fadeSlide 16s linear infinite 4s; }
+.slide.s3 { animation: fadeSlide 16s linear infinite 8s; }
+.slide.s4 { animation: fadeSlide 16s linear infinite 12s; }
+
+@keyframes fadeSlide {
+  0%   { opacity: 0; transform: scale(1.02); pointer-events:none; }
+  5%   { opacity: 1; transform: scale(1); pointer-events:auto; }
+  22%  { opacity: 1; transform: scale(1); pointer-events:auto; }
+  27%  { opacity: 0; transform: scale(0.98); pointer-events:none; }
+  100% { opacity: 0; transform: scale(0.98); pointer-events:none; }
+}
+
+/* dots */
+.hero-dots { position: absolute; right: 28px; bottom: 20px; z-index: 4; display:flex; gap:10px; }
+.hero-dots span {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:36px; height:36px; background: rgba(255,255,255,0.12); color:#fff; border-radius:50%;
+  font-weight:700; border:1px solid rgba(255,255,255,0.12); font-size:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.25);
+}
+.hero-dots span:nth-child(1){ animation: dotHighlight 16s linear infinite 0s; }
+.hero-dots span:nth-child(2){ animation: dotHighlight 16s linear infinite 4s; }
+.hero-dots span:nth-child(3){ animation: dotHighlight 16s linear infinite 8s; }
+.hero-dots span:nth-child(4){ animation: dotHighlight 16s linear infinite 12s; }
+@keyframes dotHighlight {
+  0%   { background: rgba(255,255,255,0.12); color:#fff; transform: scale(1); }
+  5%   { background: #fff; color: #111; transform: scale(1.06); }
+  22%  { background: #fff; color: #111; transform: scale(1.06); }
+  27%  { background: rgba(255,255,255,0.12); color:#fff; transform: scale(1); }
+  100% { background: rgba(255,255,255,0.12); color:#fff; transform: scale(1); }
+}
+
+/* responsive */
+@media (max-width:1200px) { .title{ font-size:48px } .css-hero-slider{height:560px} .hero-dots{right:18px;bottom:14px} }
+@media (max-width:768px) { .title{ font-size:28px } .kicker{font-size:12px} .css-hero-slider{height:360px} .cta{padding:10px 18px} .hero-dots{gap:6px} .hero-dots span{width:30px;height:30px;font-size:13px} }
+
+/* respects reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .slide { animation: none; opacity: 1; }
+  .hero-dots span { animation: none; }
+}
