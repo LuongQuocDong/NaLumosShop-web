@@ -7,7 +7,7 @@
   "scripts": {
     "ng": "ng",
     "start": "npx http-server ./dist/NaLumosShop-web -p $PORT -c-1",
-    "build": "ng build --configuration production",
+    "build": "node --openssl-legacy-provider ./node_modules/@angular/cli/bin/ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
