@@ -12,7 +12,7 @@ export class WebSocketService {
   constructor() { }
 
   public openWebSocket(){
-    this.webSocket = new WebSocket('ws://localhost:8080/notification');
+    this.webSocket = new WebSocket('wss://nalumos-backend-production.up.railway.app/notification');
 
     this.webSocket.onopen = (event) => {
       // console.log('Open: ', event);

@@ -7,7 +7,7 @@ import { Customer } from '../common/Customer';
 })
 export class CustomerService {
 
-  url = "http://localhost:8080/api/auth";
+  url = "https://nalumos-backend-production.up.railway.app/api/auth";
 
   constructor(private httpClient: HttpClient) { }
 

@@ -9,8 +9,8 @@ import { CartDetail } from '../common/CartDetail';
 })
 export class CartService {
 
-  urlCart = 'http://localhost:8080/api/cart';
-  urlCartDetail = 'http://localhost:8080/api/cartDetail';
+  urlCart = 'https://nalumos-backend-production.up.railway.app/api/cart';
+  urlCartDetail = 'https://nalumos-backend-production.up.railway.app/api/cartDetail';
 
   constructor(private httpClient: HttpClient) { }
 

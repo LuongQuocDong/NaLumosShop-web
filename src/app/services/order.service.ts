@@ -7,9 +7,9 @@ import { Cart } from '../common/Cart';
 })
 export class OrderService {
 
-  url = "http://localhost:8080/api/orders";
+  url = "https://nalumos-backend-production.up.railway.app/api/orders";
 
-  urlOrderDetail = "http://localhost:8080/api/orderDetail";
+  urlOrderDetail = "https://nalumos-backend-production.up.railway.app/api/orderDetail";
 
   constructor(private httpClient: HttpClient) { }
 

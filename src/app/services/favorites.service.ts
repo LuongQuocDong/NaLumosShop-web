@@ -8,7 +8,7 @@ import { Favorites } from '../common/Favorites';
 })
 export class FavoritesService {
 
-  url = 'http://localhost:8080/api/favorites';
+  url = 'https://nalumos-backend-production.up.railway.app/api/favorites';
 
   constructor(private httpClient: HttpClient) { }
 
