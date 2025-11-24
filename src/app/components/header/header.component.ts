@@ -89,6 +89,10 @@ export class HeaderComponent implements OnInit {
 
   checkLogin() {
     let email = this.sessionService.getUser();
+    if (!email) {
+      this.isLogin = false;
+      return;
+    }
     this.customerService.getByEmail(email).subscribe(data => {
       this.isLogin = true;
     }, error => {
