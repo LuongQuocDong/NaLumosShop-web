@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable, EMPTY } from 'rxjs';
 import { Customer } from '../common/Customer';
 
 @Injectable({
@@ -15,8 +16,11 @@ export class CustomerService {
     return this.httpClient.get(this.url + '/' + id);
   }
 
-  getByEmail(email: string) {
-    return this.httpClient.get(this.url + '/email/' + email);
+  getByEmail(email: string | null | undefined): Observable<Customer> {
+    if (!email) {
+      return EMPTY as Observable<Customer>;
+    }
+    return this.httpClient.get<Customer>(this.url + '/email/' + email);
   }
 
   update(id: number, customer: Customer) {
