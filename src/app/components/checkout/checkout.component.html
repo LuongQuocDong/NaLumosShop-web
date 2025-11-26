@@ -101,9 +101,15 @@
                   <p style="text-align: center;">Thanh toán khi nhận hàng</p>
                   <a class="ps-btn ps-btn--fullwidth" href="javascript:void(0);" (click)="checkOut()">Xác nhận thanh toán</a>
                   <br>
-                  <p style="text-align: center;">OR</p>
-                  <p style="text-align: center;">Thanh toán online qua paypal</p>
-                  <ngx-paypal [config]="payPalConfig"></ngx-paypal>
+                  <p style="text-align: center;">Hoặc chọn MoMo</p>
+                  <button class="ps-btn ps-btn--fullwidth" type="button"
+                    [disabled]="isProcessingPayment"
+                    (click)="payWithMomo()">
+                    {{ isProcessingPayment ? 'Đang kết nối MoMo...' : 'Thanh toán qua MoMo' }}
+                  </button>
+                  <small style="display:block;text-align:center;color:#666;margin-top:8px;">
+                    Bạn sẽ được chuyển tới cổng MoMo để hoàn tất thanh toán an toàn.
+                  </small>
                 </div>
               </div>
             </div>

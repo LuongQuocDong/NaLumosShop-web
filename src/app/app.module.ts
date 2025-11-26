@@ -30,7 +30,6 @@ import { ToastrModule } from 'ngx-toastr';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { AuthGuard } from './guard/auth.guard';
 import { OrderModule } from 'ngx-order-pipe';
-import { NgxPayPalModule } from 'ngx-paypal';
 
 
 const routes: Routes = [
@@ -82,7 +81,6 @@ const routes: Routes = [
     BrowserAnimationsModule,
     NgxPaginationModule,
     OrderModule,
-    NgxPayPalModule,
     RouterModule.forRoot(routes, { enableTracing: true }),
     NgbModule,
      // NgModule,

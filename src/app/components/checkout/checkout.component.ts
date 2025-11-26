@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { NavigationEnd, Router } from '@angular/router';
-import { ICreateOrderRequest, IPayPalConfig } from 'ngx-paypal';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Cart } from 'src/app/common/Cart';
 import { CartDetail } from 'src/app/common/CartDetail';
@@ -13,6 +12,7 @@ import { NotificationService } from 'src/app/services/notification.service';
 import { OrderService } from 'src/app/services/order.service';
 import { SessionService } from 'src/app/services/session.service';
 import { WebSocketService } from 'src/app/services/web-socket.service';
+import { PaymentService } from 'src/app/services/payment.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -32,8 +32,7 @@ export class CheckoutComponent implements OnInit {
 
   postForm: FormGroup;
 
-  amountPaypal!: number;
-  public payPalConfig?: IPayPalConfig;
+  isProcessingPayment = false;
 
   constructor(
     private cartService: CartService,
@@ -42,7 +41,9 @@ export class CheckoutComponent implements OnInit {
     private sessionService: SessionService,
     private orderService: OrderService,
     private webSocketService: WebSocketService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private paymentService: PaymentService,
+    private activatedRoute: ActivatedRoute
   ) {
     // Tạo form chỉ 1 lần
     this.postForm = new FormGroup({
@@ -52,7 +53,6 @@ export class CheckoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.checkOutPaypal();
     this.webSocketService.openWebSocket();
     this.router.events.subscribe((evt) => {
       if (!(evt instanceof NavigationEnd)) {
@@ -63,10 +63,10 @@ export class CheckoutComponent implements OnInit {
 
     this.discount = 0;
     this.amount = 0;
-    this.amountPaypal = 0;
     this.amountReal = 0;
 
     this.getAllItem();
+    this.handleMomoReturn();
   }
 
   getAllItem() {
@@ -95,7 +95,6 @@ export class CheckoutComponent implements OnInit {
           this.amount += item.price;
         });
         this.discount = this.amount - this.amountReal;
-        this.amountPaypal = (this.amount / 22727.5);
       }, err => {
         console.error('getAllDetail error', err);
       });
@@ -161,50 +160,65 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
-  private checkOutPaypal(): void {
+  payWithMomo() {
+    if (!this.postForm.valid) {
+      this.toastr.error('Hãy nhập đầy đủ thông tin', 'Hệ thống');
+      return;
+    }
+    if (!this.amount || this.amount <= 0) {
+      this.toastr.warning('Giỏ hàng đang trống', 'Hệ thống');
+      return;
+    }
+    if (this.isProcessingPayment) {
+      return;
+    }
 
-    this.payPalConfig = {
-      currency: 'USD',
-      clientId: 'Af5ZEdGAlk3_OOp29nWn8_g717UNbdcbpiPIZOZgSH4Gdneqm_y_KVFiHgrIsKM0a2dhNBfFK8TIuoOG',
-      createOrderOnClient: (data) => <ICreateOrderRequest>{
-        intent: 'CAPTURE',
-        purchase_units: [{
-          amount: {
-            currency_code: 'USD',
-            value: String(this.amountPaypal ? this.amountPaypal.toFixed(2) : '0.00'),
-          },
-        }]
-      },
-      advanced: {
-        commit: 'true'
-      },
-      style: {
-        label: 'paypal',
-        layout: 'vertical',
-        color: 'blue',
-        size: 'small',
-        shape: 'rect',
-      },
-      onApprove: (data, actions) => {
-        console.log('onApprove - transaction was approved, but not authorized', data, actions);
-        actions.order.get().then((details: any) => {
-          console.log('onApprove - order details: ', details);
-        });
-      },
-      onClientAuthorization: (data) => {
-        console.log('onClientAuthorization', data);
-        this.checkOut();
-      },
-      onCancel: (data, actions) => {
-        console.log('OnCancel', data, actions);
-      },
-      onError: err => {
-        console.log('OnError', err);
-      },
-      onClick: (data, actions) => {
-        console.log('onClick', data, actions);
-      },
+    this.isProcessingPayment = true;
+    const payload = {
+      amount: Math.round(this.amount),
+      orderInfo: `Thanh toán đơn hàng ${new Date().getTime()}`
     };
+
+    this.paymentService.createMomoPayment(payload).subscribe({
+      next: (response: any) => {
+        this.isProcessingPayment = false;
+        if (response?.payUrl) {
+          window.location.href = response.payUrl;
+        } else {
+          this.toastr.error('Không nhận được liên kết thanh toán MoMo', 'Hệ thống');
+        }
+      },
+      error: err => {
+        this.isProcessingPayment = false;
+        console.error('createMomoPayment error', err);
+        this.toastr.error('Không thể kết nối MoMo, vui lòng thử lại', 'Hệ thống');
+      }
+    });
+  }
+
+  private handleMomoReturn() {
+    this.activatedRoute.queryParamMap.subscribe(params => {
+      const resultCode = params.get('resultCode');
+      if (resultCode === null) {
+        return;
+      }
+      const message = params.get('message') || '';
+      if (resultCode === '0') {
+        this.toastr.success('Thanh toán MoMo thành công', 'Hệ thống');
+        this.checkOut();
+      } else {
+        this.toastr.error(`Thanh toán MoMo thất bại (${message || resultCode})`, 'Hệ thống');
+      }
+      this.clearPaymentQueryParams();
+    });
+  }
+
+  private clearPaymentQueryParams() {
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: {},
+      replaceUrl: true
+    });
   }
 
 }
