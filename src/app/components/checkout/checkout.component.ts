@@ -184,14 +184,16 @@ export class CheckoutComponent implements OnInit {
         this.isProcessingPayment = false;
         if (response?.payUrl) {
           window.location.href = response.payUrl;
-        } else {
-          this.toastr.error('Không nhận được liên kết thanh toán MoMo', 'Hệ thống');
+          return;
         }
+        const fallbackMessage = response?.localMessage || response?.message || 'Không nhận được liên kết thanh toán MoMo';
+        this.toastr.error(fallbackMessage, 'Hệ thống');
       },
       error: err => {
         this.isProcessingPayment = false;
         console.error('createMomoPayment error', err);
-        this.toastr.error('Không thể kết nối MoMo, vui lòng thử lại', 'Hệ thống');
+        const serverMsg = err?.error?.localMessage || err?.error?.message;
+        this.toastr.error(serverMsg || 'Không thể kết nối MoMo, vui lòng thử lại', 'Hệ thống');
       }
     });
   }
