@@ -11,6 +11,7 @@ export class SendmailService {
   constructor(private httpClient: HttpClient) { }
 
   sendMailOtp(email:String) {
-    return this.httpClient.post(this.url+'/otp', email);
+    // Send as JSON object to avoid 415 error
+    return this.httpClient.post(this.url+'/otp', { email: email });
   }
 }
