@@ -65,8 +65,17 @@ export class CheckoutComponent implements OnInit {
     this.amount = 0;
     this.amountReal = 0;
 
-    this.getAllItem();
-    this.handleVNPAYReturn();
+    // Kiểm tra xem có phải quay lại từ VNPAY không
+    this.activatedRoute.queryParamMap.subscribe(params => {
+      const vnp_ResponseCode = params.get('vnp_ResponseCode');
+      if (vnp_ResponseCode !== null) {
+        // Đang quay lại từ VNPAY, xử lý return trước
+        this.handleVNPAYReturn();
+      } else {
+        // Không phải quay lại từ VNPAY, load bình thường
+        this.getAllItem();
+      }
+    });
   }
 
   getAllItem() {
@@ -208,64 +217,109 @@ export class CheckoutComponent implements OnInit {
   }
 
   private handleVNPAYReturn() {
-    this.activatedRoute.queryParamMap.subscribe(params => {
-      const vnp_ResponseCode = params.get('vnp_ResponseCode');
-      if (vnp_ResponseCode === null) {
-        return;
+    // Khôi phục thông tin form từ sessionStorage trước
+    const savedFormData = sessionStorage.getItem('vnpay_checkout_form');
+    let formData: any = null;
+    if (savedFormData) {
+      try {
+        formData = JSON.parse(savedFormData);
+      } catch (e) {
+        console.error('Error parsing saved form data', e);
       }
-      const vnp_TransactionStatus = params.get('vnp_TransactionStatus');
-      const vnp_TxnRef = params.get('vnp_TxnRef');
-      const vnp_Amount = params.get('vnp_Amount');
-      
-      // Khôi phục thông tin form từ sessionStorage
-      const savedFormData = sessionStorage.getItem('vnpay_checkout_form');
-      if (savedFormData) {
-        try {
-          const formData = JSON.parse(savedFormData);
-          this.postForm.patchValue({
-            phone: formData.phone,
-            address: formData.address
-          });
-        } catch (e) {
-          console.error('Error parsing saved form data', e);
-        }
-      }
-      
-      // VNPAY trả về ResponseCode = '00' là thành công
-      if (vnp_ResponseCode === '00' && (vnp_TransactionStatus === '00' || vnp_TransactionStatus === null)) {
-        this.toastr.success('Thanh toán VNPAY thành công! Đang xác nhận đơn hàng...', 'Hệ thống');
-        // Đợi một chút để form được patch giá trị
-        setTimeout(() => {
-          this.checkOutAfterPayment();
-        }, 100);
+    }
+
+    // Load cart trước, sau đó mới xử lý return
+    const email = this.sessionService.getUser();
+    this.cartService.getCart(email).subscribe(data => {
+      this.cart = data as Cart;
+
+      // Khôi phục form từ sessionStorage (ưu tiên hơn cart)
+      if (formData) {
+        this.postForm.patchValue({
+          phone: formData.phone || this.cart.phone || null,
+          address: formData.address || this.cart.address || ''
+        });
       } else {
-        const message = params.get('vnp_ResponseCode') || 'Lỗi không xác định';
-        this.toastr.error(`Thanh toán VNPAY thất bại (Mã lỗi: ${vnp_ResponseCode})`, 'Hệ thống');
+        // Nếu không có sessionStorage, dùng từ cart
+        this.postForm.patchValue({
+          phone: this.cart.phone || null,
+          address: this.cart.address || ''
+        });
       }
-      this.clearPaymentQueryParams();
+
+      // Load cart details
+      this.cartService.getAllDetail(this.cart.cartId).subscribe(data => {
+        this.cartDetails = data as CartDetail[];
+        this.cartService.setLength(this.cartDetails.length);
+        if (this.cartDetails.length === 0) {
+          this.router.navigate(['/']);
+          this.toastr.info('Hãy chọn một vài sản phẩm rồi tiến hành thanh toán', 'Hệ thống');
+          return;
+        }
+        // reset lại amount trước khi tính
+        this.amountReal = 0;
+        this.amount = 0;
+        this.cartDetails.forEach(item => {
+          this.amountReal += item.product.price * item.quantity;
+          this.amount += item.price;
+        });
+        this.discount = this.amount - this.amountReal;
+
+        // Sau khi load xong cart, mới xử lý return từ VNPAY
+        this.activatedRoute.queryParamMap.subscribe(params => {
+          const vnp_ResponseCode = params.get('vnp_ResponseCode');
+          if (vnp_ResponseCode === null) {
+            return;
+          }
+          const vnp_TransactionStatus = params.get('vnp_TransactionStatus');
+          
+          // VNPAY trả về ResponseCode = '00' là thành công
+          if (vnp_ResponseCode === '00' && (vnp_TransactionStatus === '00' || vnp_TransactionStatus === null)) {
+            this.toastr.success('Thanh toán VNPAY thành công! Đang xác nhận đơn hàng...', 'Hệ thống');
+            // Đợi một chút để đảm bảo form đã được patch
+            setTimeout(() => {
+              this.checkOutAfterPayment();
+            }, 300);
+          } else {
+            const message = params.get('vnp_ResponseCode') || 'Lỗi không xác định';
+            this.toastr.error(`Thanh toán VNPAY thất bại (Mã lỗi: ${vnp_ResponseCode})`, 'Hệ thống');
+          }
+          this.clearPaymentQueryParams();
+        });
+      }, err => {
+        console.error('getAllDetail error', err);
+      });
+
+    }, err => {
+      console.error('getCart error', err);
     });
   }
 
   private checkOutAfterPayment() {
-    // Lấy thông tin từ sessionStorage nếu form không valid
+    // Lấy thông tin từ sessionStorage (ưu tiên) hoặc form
     let phone = this.postForm.value.phone;
     let address = this.postForm.value.address;
     
-    if (!phone || !address) {
-      const savedFormData = sessionStorage.getItem('vnpay_checkout_form');
-      if (savedFormData) {
-        try {
-          const formData = JSON.parse(savedFormData);
-          phone = formData.phone || phone;
-          address = formData.address || address;
-        } catch (e) {
-          console.error('Error parsing saved form data', e);
-        }
+    const savedFormData = sessionStorage.getItem('vnpay_checkout_form');
+    if (savedFormData) {
+      try {
+        const formData = JSON.parse(savedFormData);
+        phone = formData.phone || phone;
+        address = formData.address || address;
+      } catch (e) {
+        console.error('Error parsing saved form data', e);
       }
+    }
+
+    // Nếu vẫn không có, lấy từ cart
+    if (!phone || !address) {
+      phone = this.cart?.phone || phone;
+      address = this.cart?.address || address;
     }
 
     // Validate lại
     if (!phone || !address) {
+      console.error('Missing order info:', { phone, address, formValue: this.postForm.value, cart: this.cart });
       this.toastr.error('Thông tin đơn hàng không hợp lệ. Vui lòng nhập lại', 'Hệ thống');
       return;
     }
