@@ -7,7 +7,8 @@
   "scripts": {
     "ng": "ng",
     "start": "node server.js",
-    "build": "node --openssl-legacy-provider ./node_modules/@angular/cli/bin/ng build --configuration production",
+    "build": "ng build --configuration production",
+    "build:legacy": "node --openssl-legacy-provider ./node_modules/@angular/cli/bin/ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
