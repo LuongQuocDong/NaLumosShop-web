@@ -176,24 +176,26 @@ export class CheckoutComponent implements OnInit {
     this.isProcessingPayment = true;
     const payload = {
       amount: Math.round(this.amount),
-      orderInfo: `Thanh toán đơn hàng ${new Date().getTime()}`
+      orderInfo: `Thanh toán đơn hàng ${new Date().getTime()}`,
+      orderType: 'other',
+      language: 'vn'
     };
 
-    this.paymentService.createMomoPayment(payload).subscribe({
+    this.paymentService.createVNPAYPayment(payload).subscribe({
       next: (response: any) => {
         this.isProcessingPayment = false;
-        if (response?.payUrl) {
-          window.location.href = response.payUrl;
+        if (response?.paymentUrl) {
+          window.location.href = response.paymentUrl;
           return;
         }
-        const fallbackMessage = response?.localMessage || response?.message || 'Không nhận được liên kết thanh toán MoMo';
+        const fallbackMessage = response?.message || 'Không nhận được liên kết thanh toán VNPAY';
         this.toastr.error(fallbackMessage, 'Hệ thống');
       },
       error: err => {
         this.isProcessingPayment = false;
-        console.error('createMomoPayment error', err);
-        const serverMsg = err?.error?.localMessage || err?.error?.message;
-        this.toastr.error(serverMsg || 'Không thể kết nối MoMo, vui lòng thử lại', 'Hệ thống');
+        console.error('createVNPAYPayment error', err);
+        const serverMsg = err?.error?.message;
+        this.toastr.error(serverMsg || 'Không thể kết nối VNPAY, vui lòng thử lại', 'Hệ thống');
       }
     });
   }

@@ -1,10 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-interface MomoPaymentPayload {
+interface VNPAYPaymentPayload {
   amount: number;
   orderInfo?: string;
-  extraData?: string;
+  orderType?: string;
+  bankCode?: string;
+  language?: string;
 }
 
 @Injectable({
@@ -12,11 +14,11 @@ interface MomoPaymentPayload {
 })
 export class PaymentService {
 
-  private url = 'https://nalumos-backend-production.up.railway.app/api/payments/momo';
+  private url = 'https://nalumos-backend-production.up.railway.app/api/payments/vnpay';
 
   constructor(private httpClient: HttpClient) { }
 
-  createMomoPayment(payload: MomoPaymentPayload) {
+  createVNPAYPayment(payload: VNPAYPaymentPayload) {
     return this.httpClient.post(`${this.url}/create`, payload);
   }
 }
