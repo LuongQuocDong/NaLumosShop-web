@@ -211,15 +211,53 @@ export class CheckoutComponent implements OnInit {
       const vnp_Amount = params.get('vnp_Amount');
       
       // VNPAY trả về ResponseCode = '00' là thành công
-      if (vnp_ResponseCode === '00' && vnp_TransactionStatus === '00') {
-        this.toastr.success('Thanh toán VNPAY thành công', 'Hệ thống');
-        // Tự động đặt hàng sau khi thanh toán thành công
-        this.checkOut();
+      if (vnp_ResponseCode === '00' && (vnp_TransactionStatus === '00' || vnp_TransactionStatus === null)) {
+        this.toastr.success('Thanh toán VNPAY thành công! Đang xác nhận đơn hàng...', 'Hệ thống');
+        // Tự động đặt hàng sau khi thanh toán thành công (không hiển thị dialog xác nhận)
+        this.checkOutAfterPayment();
       } else {
         const message = params.get('vnp_ResponseCode') || 'Lỗi không xác định';
         this.toastr.error(`Thanh toán VNPAY thất bại (Mã lỗi: ${vnp_ResponseCode})`, 'Hệ thống');
       }
       this.clearPaymentQueryParams();
+    });
+  }
+
+  private checkOutAfterPayment() {
+    if (!this.postForm.valid) {
+      this.toastr.error('Thông tin đơn hàng không hợp lệ', 'Hệ thống');
+      return;
+    }
+
+    const email = this.sessionService.getUser();
+    this.cartService.getCart(email).subscribe(data => {
+      this.cart = data as Cart;
+
+      // Gán địa chỉ trực tiếp từ ô address
+      this.cart.address = this.postForm.value.address;
+      this.cart.phone = this.postForm.value.phone;
+
+      this.cartService.updateCart(email, this.cart).subscribe(updated => {
+        this.cart = updated as Cart;
+        this.orderService.post(email, this.cart).subscribe(dataOrder => {
+          const order: Order = dataOrder as Order;
+          this.sendMessage(order.ordersId);
+          Swal.fire(
+            'Đặt hàng thành công!',
+            'Cảm ơn bạn đã thanh toán và đặt hàng. Đơn hàng của bạn đã được xác nhận.',
+            'success'
+          ).then(() => {
+            this.router.navigate(['/cart']);
+          });
+        }, error => {
+          this.toastr.error('Lỗi khi xác nhận đơn hàng', 'Hệ thống');
+        });
+      }, error => {
+        this.toastr.error('Lỗi khi cập nhật thông tin', 'Hệ thống');
+      });
+
+    }, error => {
+      this.toastr.error('Lỗi server', 'Hệ thống');
     });
   }
 
