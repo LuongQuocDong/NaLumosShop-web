@@ -173,6 +173,13 @@ export class CheckoutComponent implements OnInit {
       return;
     }
 
+    // Lưu thông tin form vào sessionStorage trước khi chuyển sang VNPAY
+    const formData = {
+      phone: this.postForm.value.phone,
+      address: this.postForm.value.address
+    };
+    sessionStorage.setItem('vnpay_checkout_form', JSON.stringify(formData));
+
     this.isProcessingPayment = true;
     const payload = {
       amount: Math.round(this.amount),
@@ -210,11 +217,27 @@ export class CheckoutComponent implements OnInit {
       const vnp_TxnRef = params.get('vnp_TxnRef');
       const vnp_Amount = params.get('vnp_Amount');
       
+      // Khôi phục thông tin form từ sessionStorage
+      const savedFormData = sessionStorage.getItem('vnpay_checkout_form');
+      if (savedFormData) {
+        try {
+          const formData = JSON.parse(savedFormData);
+          this.postForm.patchValue({
+            phone: formData.phone,
+            address: formData.address
+          });
+        } catch (e) {
+          console.error('Error parsing saved form data', e);
+        }
+      }
+      
       // VNPAY trả về ResponseCode = '00' là thành công
       if (vnp_ResponseCode === '00' && (vnp_TransactionStatus === '00' || vnp_TransactionStatus === null)) {
         this.toastr.success('Thanh toán VNPAY thành công! Đang xác nhận đơn hàng...', 'Hệ thống');
-        // Tự động đặt hàng sau khi thanh toán thành công (không hiển thị dialog xác nhận)
-        this.checkOutAfterPayment();
+        // Đợi một chút để form được patch giá trị
+        setTimeout(() => {
+          this.checkOutAfterPayment();
+        }, 100);
       } else {
         const message = params.get('vnp_ResponseCode') || 'Lỗi không xác định';
         this.toastr.error(`Thanh toán VNPAY thất bại (Mã lỗi: ${vnp_ResponseCode})`, 'Hệ thống');
@@ -224,8 +247,26 @@ export class CheckoutComponent implements OnInit {
   }
 
   private checkOutAfterPayment() {
-    if (!this.postForm.valid) {
-      this.toastr.error('Thông tin đơn hàng không hợp lệ', 'Hệ thống');
+    // Lấy thông tin từ sessionStorage nếu form không valid
+    let phone = this.postForm.value.phone;
+    let address = this.postForm.value.address;
+    
+    if (!phone || !address) {
+      const savedFormData = sessionStorage.getItem('vnpay_checkout_form');
+      if (savedFormData) {
+        try {
+          const formData = JSON.parse(savedFormData);
+          phone = formData.phone || phone;
+          address = formData.address || address;
+        } catch (e) {
+          console.error('Error parsing saved form data', e);
+        }
+      }
+    }
+
+    // Validate lại
+    if (!phone || !address) {
+      this.toastr.error('Thông tin đơn hàng không hợp lệ. Vui lòng nhập lại', 'Hệ thống');
       return;
     }
 
@@ -233,15 +274,17 @@ export class CheckoutComponent implements OnInit {
     this.cartService.getCart(email).subscribe(data => {
       this.cart = data as Cart;
 
-      // Gán địa chỉ trực tiếp từ ô address
-      this.cart.address = this.postForm.value.address;
-      this.cart.phone = this.postForm.value.phone;
+      // Gán địa chỉ và số điện thoại
+      this.cart.address = address;
+      this.cart.phone = phone;
 
       this.cartService.updateCart(email, this.cart).subscribe(updated => {
         this.cart = updated as Cart;
         this.orderService.post(email, this.cart).subscribe(dataOrder => {
           const order: Order = dataOrder as Order;
           this.sendMessage(order.ordersId);
+          // Xóa dữ liệu đã lưu
+          sessionStorage.removeItem('vnpay_checkout_form');
           Swal.fire(
             'Đặt hàng thành công!',
             'Cảm ơn bạn đã thanh toán và đặt hàng. Đơn hàng của bạn đã được xác nhận.',
