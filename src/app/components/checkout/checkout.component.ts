@@ -66,7 +66,7 @@ export class CheckoutComponent implements OnInit {
     this.amountReal = 0;
 
     this.getAllItem();
-    this.handleMomoReturn();
+    this.handleVNPAYReturn();
   }
 
   getAllItem() {
@@ -160,7 +160,7 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
-  payWithMomo() {
+  payWithVNPAY() {
     if (!this.postForm.valid) {
       this.toastr.error('Hãy nhập đầy đủ thông tin', 'Hệ thống');
       return;
@@ -200,18 +200,24 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
-  private handleMomoReturn() {
+  private handleVNPAYReturn() {
     this.activatedRoute.queryParamMap.subscribe(params => {
-      const resultCode = params.get('resultCode');
-      if (resultCode === null) {
+      const vnp_ResponseCode = params.get('vnp_ResponseCode');
+      if (vnp_ResponseCode === null) {
         return;
       }
-      const message = params.get('message') || '';
-      if (resultCode === '0') {
-        this.toastr.success('Thanh toán MoMo thành công', 'Hệ thống');
+      const vnp_TransactionStatus = params.get('vnp_TransactionStatus');
+      const vnp_TxnRef = params.get('vnp_TxnRef');
+      const vnp_Amount = params.get('vnp_Amount');
+      
+      // VNPAY trả về ResponseCode = '00' là thành công
+      if (vnp_ResponseCode === '00' && vnp_TransactionStatus === '00') {
+        this.toastr.success('Thanh toán VNPAY thành công', 'Hệ thống');
+        // Tự động đặt hàng sau khi thanh toán thành công
         this.checkOut();
       } else {
-        this.toastr.error(`Thanh toán MoMo thất bại (${message || resultCode})`, 'Hệ thống');
+        const message = params.get('vnp_ResponseCode') || 'Lỗi không xác định';
+        this.toastr.error(`Thanh toán VNPAY thất bại (Mã lỗi: ${vnp_ResponseCode})`, 'Hệ thống');
       }
       this.clearPaymentQueryParams();
     });

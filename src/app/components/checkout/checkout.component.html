@@ -101,14 +101,15 @@
                   <p style="text-align: center;">Thanh toán khi nhận hàng</p>
                   <a class="ps-btn ps-btn--fullwidth" href="javascript:void(0);" (click)="checkOut()">Xác nhận thanh toán</a>
                   <br>
-                  <p style="text-align: center;">Hoặc chọn MoMo</p>
+                  <p style="text-align: center;">Hoặc chọn VNPAY</p>
                   <button class="ps-btn ps-btn--fullwidth" type="button"
                     [disabled]="isProcessingPayment"
-                    (click)="payWithMomo()">
-                    {{ isProcessingPayment ? 'Đang kết nối MoMo...' : 'Thanh toán qua MoMo' }}
+                    (click)="payWithVNPAY()"
+                    style="background-color: #0066CC; border-color: #0066CC;">
+                    {{ isProcessingPayment ? 'Đang kết nối VNPAY...' : 'Thanh toán bằng VNPAY' }}
                   </button>
                   <small style="display:block;text-align:center;color:#666;margin-top:8px;">
-                    Bạn sẽ được chuyển tới cổng MoMo để hoàn tất thanh toán an toàn.
+                    Bạn sẽ được chuyển tới cổng VNPAY để hoàn tất thanh toán an toàn.
                   </small>
                 </div>
               </div>
